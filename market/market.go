@@ -244,11 +244,11 @@ func marketRequestHandler(d *MDataMapLocker, server string, regionId int32, page
 		//fmt.Println(page)
 		return
 	}
-	//Req:
+Req:
 	err, status := marketRequestSender(d, server, regionId, page, client)
 	if err != nil {
-		fmt.Printf("第 %d 页 出错\n", page)
-		//goto Req
+		fmt.Printf("第 %d 页 出错 - 回滚\n", page)
+		goto Req
 	}
 	if !status {
 		eBd.lock.Lock()
@@ -266,7 +266,7 @@ func MktRequestsDistributor(server string, regionId int32) (m MDataMap, err erro
 	if server == "serenity" {
 		rg = 120
 	} else if server == "tranquility" {
-		rg = 250
+		rg = 300
 	} else {
 		return nil, errors.New(fmt.Sprintf("invalid server %s", server))
 	}
@@ -280,7 +280,7 @@ func MktRequestsDistributor(server string, regionId int32) (m MDataMap, err erro
 		wg.Add(1)
 		go marketRequestHandler(&md, server, regionId, i, &client, &eChan, wg)
 		//fmt.Println(md.Map[34], i)
-		if i%5 == 0 {
+		if i%25 == 0 {
 			wg.Wait()
 		}
 	}

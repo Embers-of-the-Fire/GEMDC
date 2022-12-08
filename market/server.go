@@ -23,6 +23,7 @@ func (s *Server) GetStatus() (st int) {
 
 func (s *Server) start(ch chan int, wg *sync.WaitGroup) {
 	_logger := s.Logger
+	defer wg.Done()
 	if _logger == nil {
 		panic("no logger in this server")
 	}
@@ -37,7 +38,8 @@ func (s *Server) start(ch chan int, wg *sync.WaitGroup) {
 	s.status = 0
 	s.lock.Unlock()
 	ch <- 0
-	for kk := 0; kk < 10; kk++ {
+	kk := 0
+	for ; ; kk++ {
 		_logger.Println("Start processing market data at", time.Now().Format(time.RFC3339))
 		s.lock.Lock()
 		s.status = 1
@@ -74,7 +76,6 @@ func (s *Server) start(ch chan int, wg *sync.WaitGroup) {
 		ch <- 0
 		time.Sleep(time.Minute * 10)
 	}
-	wg.Done()
 }
 
 func (s *Server) Start(send bool, ech chan int, wg *sync.WaitGroup) {
